@@ -16,7 +16,8 @@ deploy:
     - echo $GOOGLE_APPLICATION_CREDENTIALS_BASE64 | base64 -d > $GOOGLE_APPLICATION_CREDENTIALS
     - gcloud auth activate-service-account ci-cd-740@fb-games-306023.iam.gserviceaccount.com  --key-file=$CI_PROJECT_DIR/creds/serviceaccount.json --project=fb-games-306023
     - gcloud container clusters get-credentials some-cluster --region us-central1 --project fb-games-306023
-    - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/
+    - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/0-install/
+    - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/1-install/
     - kubectl get pod -n kong
   only:
     - master
