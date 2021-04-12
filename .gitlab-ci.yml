@@ -19,5 +19,6 @@ deploy:
     - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/0-install/
     - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/1-install/
     - kubectl get pod -n kong
+    - helm install -f $CI_PROJECT_DIR/konga-manifests/konga/values.yaml konga ./$CI_PROJECT_DIR/konga-manifests/konga
   only:
     - master
