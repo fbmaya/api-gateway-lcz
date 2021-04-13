@@ -270,6 +270,7 @@ rules:
   - nodes
   - pods
   - secrets
+  - ingresses
   verbs:
   - list
   - watch
@@ -289,6 +290,7 @@ rules:
   - watch
 - apiGroups:
   - "extensions"
+  - "networking.k8s.io"
   resources:
   - ingresses
   verbs:
@@ -304,6 +306,7 @@ rules:
   - patch
 - apiGroups:
   - "extensions"
+  - "networking.k8s.io"
   resources:
   - ingresses/status
   verbs:
@@ -315,6 +318,9 @@ rules:
   - kongcredentials
   - kongconsumers
   - kongingresses
+  - kongclusterplugins
+  - kongclusterplugins
+  - tcpingresses
   verbs:
   - get
   - list
