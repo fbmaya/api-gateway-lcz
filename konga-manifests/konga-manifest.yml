@@ -76,7 +76,7 @@ spec:
     spec:
       containers:
       - name: konga
-        image: konga:latest
+        image: pantsel/konga:latest
         envFrom:
         - configMapRef:
             name: konga-config
