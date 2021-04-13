@@ -1,3 +1,3 @@
 # api-gateway-lcz
 
-# Kong
+# Kong + Konga
