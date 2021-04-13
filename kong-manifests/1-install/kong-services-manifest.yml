@@ -1,0 +1,173 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-ingress-controller
+  namespace: kong
+spec:
+  type: ClusterIP
+  ports:
+  - name: kong-admin
+    port: 8001
+    targetPort: 8001
+    protocol: TCP
+  selector:
+    app: ingress-kong
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ingress-kong
+  name: kong-ingress-controller
+  namespace: kong
+spec:
+  selector:
+    matchLabels:
+      app: ingress-kong
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        # the returned metrics are related to the kong ingress controller not kong itself
+        prometheus.io/port: "10254"
+        prometheus.io/scrape: "true"
+      labels:
+        app: ingress-kong
+    spec:
+      serviceAccountName: kong-serviceaccount
+      containers:
+      - name: admin-api
+        image: repo1.br.engineering:5000/kong-engdb:1.3.0-01
+        envFrom:
+        - configMapRef:
+            name: kong-ingress-config
+        ports:
+        - name: kong-admin
+          containerPort: 8001
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 8001
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /status
+            port: 8001
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+      - name: ingress-controller
+        args:
+        - /kong-ingress-controller
+        # the kong URL points to the kong admin api server
+        - --kong-url=https://localhost:8444
+        - --admin-tls-skip-verify
+        # the default service is the kong proxy service
+        #- --default-backend-service=kong/kong-proxy
+        # Service from were we extract the IP address/es to use in Ingress status
+        - --publish-service=kong/kong-proxy
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        image: repo1.br.engineering:5000/siriuszg/kong-ingress-controller:0.6.1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: 10254
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-proxy
+  namespace: kong
+spec:
+  selector:
+    app: kong
+  type: LoadBalancer
+  loadBalancerIP: "34.95.208.3"
+  ports:
+  - name: kong-proxy
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+  - name: kong-proxy-ssl
+    port: 443
+    targetPort: 8443
+    protocol: TCP
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+  namespace: kong
+spec:
+  selector:
+    matchLabels:
+      app: kong
+  template:
+    metadata:
+      labels:
+        name: kong
+        app: kong
+    spec:
+      containers:
+      - name: kong-proxy
+        image: repo1.br.engineering:5000/kong-engdb:1.3.0-01
+        envFrom:
+        - configMapRef:
+            name: kong-config
+        ports:
+        - name: proxy
+          containerPort: 8000
+          protocol: TCP
+        - name: proxy-ssl
+          containerPort: 8443
+          protocol: TCP
+        resources:
+           requests:
+             memory: "512Mi"
+             cpu: "70m"
+           limits:
+             memory: "512Mi"
+             cpu: "100m"
+

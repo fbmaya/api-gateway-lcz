@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: konga
+  namespace: kong
+  labels:
+    app: konga
+spec:
+  type: LoadBalancer
+  loadBalancerIP: "34.95.136.14" #auth
+  ports:
+  - name: konga
+    protocol: TCP
+    port: 80 # port number visible to other services running within the same K8s cluster.
+    targetPort: konga-port # 1337[konga] the port on the POD where the service is running. Use name for desired health check
+#    nodePort: 31337 # can be accessed from external users using Kube-Proxy
+  selector:
+    app: konga
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+   name: konga-prepare
+   namespace: kong
+spec:
+  template:
+    metadata:
+      name: konga-prepare
+    spec:
+      containers:
+      - name: konga-prepare
+        image: repo1.br.engineering:5000/pantsel/konga:0.14.5
+        command: [ "node", "./bin/konga.js", "prepare", "--adapter", "postgres", "--uri", "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)" ]
+        env:
+          - name: DB_USER
+            valueFrom:
+              configMapKeyRef:
+                name: konga-config
+                key: DB_USER
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: konga-config
+                key: DB_HOST
+          - name: DB_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: konga-config
+                key: DB_PASSWORD
+          - name: DB_DATABASE
+            valueFrom:
+              configMapKeyRef:
+                name: konga-config
+                key: DB_DATABASE
+      restartPolicy: OnFailure
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konga
+  namespace: kong
+  labels:
+    app: konga
+spec:
+  selector:
+    matchLabels:
+      app: konga
+  template:
+    metadata:
+      labels:
+        name: konga
+        app: konga
+    spec:
+      containers:
+      - name: konga
+        image: repo1.br.engineering:5000/pantsel/konga:0.14.5
+        envFrom:
+        - configMapRef:
+            name: konga-config
+        ports:
+        - name: konga-port
+          containerPort: 1337
