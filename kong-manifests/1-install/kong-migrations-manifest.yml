@@ -14,5 +14,5 @@ spec:
         envFrom:
         - configMapRef:
             name: kong-config
-        command: [ "/bin/sh", "-c", "ping -c 4 $KONG_PG_HOST && kong migrations bootstrap" ]
+        command: [ "/bin/sh", "-c", "kong migrations bootstrap" ]
       restartPolicy: OnFailure
