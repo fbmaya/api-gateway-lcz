@@ -18,7 +18,7 @@ deploy:
     - gcloud container clusters get-credentials some-cluster --region us-central1 --project fb-games-306023
     - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/0-install/
     - kubectl apply -f $CI_PROJECT_DIR/kong-manifests/1-install/
-    - kubectl apply -f $CI_PROJECT_DIR/konga-manifests/konga/
+    - kubectl apply -f $CI_PROJECT_DIR/konga-manifests/
     - kubectl get pod -n kong
   only:
     - master
