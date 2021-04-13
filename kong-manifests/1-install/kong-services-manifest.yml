@@ -43,7 +43,7 @@ spec:
       serviceAccountName: kong-serviceaccount
       containers:
       - name: admin-api
-        image: repo1.br.engineering:5000/kong-engdb:1.3.0-01
+        image: kong:2.3
         envFrom:
         - configMapRef:
             name: kong-ingress-config
@@ -90,7 +90,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: repo1.br.engineering:5000/siriuszg/kong-ingress-controller:0.6.1
+        image: kong/kubernetes-ingress-controller:1.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -152,7 +152,7 @@ spec:
     spec:
       containers:
       - name: kong-proxy
-        image: repo1.br.engineering:5000/kong-engdb:1.3.0-01
+        image: kong:2.3
         envFrom:
         - configMapRef:
             name: kong-config
