@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
       - name: konga-prepare
-        image: repo1.br.engineering:5000/pantsel/konga:0.14.5
+        image: pantsel/konga:latest
         command: [ "node", "./bin/konga.js", "prepare", "--adapter", "postgres", "--uri", "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_DATABASE)" ]
         env:
           - name: DB_USER
@@ -76,7 +76,7 @@ spec:
     spec:
       containers:
       - name: konga
-        image: repo1.br.engineering:5000/pantsel/konga:0.14.5
+        image: konga:latest
         envFrom:
         - configMapRef:
             name: konga-config
