@@ -74,7 +74,7 @@ spec:
         - /kong-ingress-controller
         # the kong URL points to the kong admin api server
         - --kong-admin-url=https://localhost:8444
-        - --admin-tls-skip-verify
+        - --kong-admin-tls-skip-verify
         # the default service is the kong proxy service
         #- --default-backend-service=kong/kong-proxy
         # Service from were we extract the IP address/es to use in Ingress status
